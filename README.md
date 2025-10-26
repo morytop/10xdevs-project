@@ -1,94 +1,71 @@
-# 10x Astro Starter
+# AI Meal Planner
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+## Project Description
+
+AI Meal Planner is a web application that leverages Large Language Models (LLMs) to generate personalised daily meal plans. The application considers users’ health goals, dietary preferences, allergies, and disliked ingredients to produce three realistic recipes (breakfast, lunch, dinner).
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+- **Frontend:** [Astro 5](https://astro.build) with [React 19](https://react.dev) & TypeScript 5
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com) & [shadcn/ui](https://ui.shadcn.com)
+- **Backend-as-a-Service:** [Supabase](https://supabase.com) (PostgreSQL, Auth, Storage)
+- **AI Provider:** [OpenRouter](https://openrouter.ai) (access to OpenAI, Anthropic, Google models & more)
+- **CI/CD & Hosting:** GitHub Actions · Docker · DigitalOcean
+- **Node Version:** **22.14.0** (`.nvmrc`)
 
-## Prerequisites
-
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
-
-## Getting Started
-
-1. Clone the repository:
+## Getting Started Locally
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
+# 1. Clone the repository
+$ git clone https://github.com/morytop/10xdevs-project.git
+$ cd 10xdevs-project
+
+# 2. Install dependencies (locks versions via package-lock.json)
+$ npm ci
+
+# 3. Run the development server
+$ npm run dev
+
+# 4. Open the app
+#    http://localhost:4321 (default Astro port)
 ```
 
-2. Install dependencies:
+### Environment Variables
+
+Create a `.env` file (or use your preferred secret manager) and set:
 
 ```bash
-npm install
-```
-
-3. Run the development server:
-
-```bash
-npm run dev
-```
-
-4. Build for production:
-
-```bash
-npm run build
+SUPABASE_URL="..."
+SUPABASE_ANON_KEY="..."
+OPENROUTER_API_KEY="..." # optional – defaults to env: OPENAI_API_KEY
 ```
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+| Script             | Description                          |
+| ------------------ | ------------------------------------ |
+| `npm run dev`      | Start Astro dev server (hot reload)  |
+| `npm run build`    | Build the production bundle          |
+| `npm run preview`  | Preview the production build locally |
+| `npm run astro`    | Expose the Astro CLI                 |
+| `npm run lint`     | Lint all files                       |
+| `npm run lint:fix` | Lint & automatically fix issues      |
+| `npm run format`   | Format files with Prettier           |
 
-## Project Structure
+## Project Scope (MVP)
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+1. **Authentication** – Register, log-in, log-out, reset password
+2. **User Onboarding** – Guided form to collect dietary profile (health goal, diet type, activity level, allergies, disliked ingredients)
+3. **Meal Plan Generation** – AI generates daily plan (3 meals) with retry logic & timeout (30 s)
+4. **Display & Feedback** – Responsive UI to present meals, regenerate plan, thumbs up/down feedback
+5. **Analytics** – Track key events (`plan_generated`, `plan_regenerated`, `plan_accepted`, `feedback_given`, …)
 
-## AI Development Support
+_Out-of-scope for MVP_: shopping list, nutritional macros, recipe library, mobile apps, multi-language support, offline mode.
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+## Project Status
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
-
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+🚧 **In active development.** 
 
 ## License
 
-MIT
+Licensed under the MIT License. See [`LICENSE`](LICENSE) for details.
