@@ -14,14 +14,38 @@ export async function logAnalyticsEvent(
     return;
   }
 
+  const sanitizedMetadata = sanitizeMetadata(metadata);
+
   try {
     await supabase.from("analytics_events").insert({
       user_id: userId,
       action_type: actionType,
       timestamp: new Date().toISOString(),
-      metadata: metadata ?? null,
+      metadata: sanitizedMetadata,
     });
   } catch (error) {
     console.error("Analytics logging failed:", error);
   }
+}
+
+function sanitizeMetadata(metadata: AnalyticsMetadata | undefined) {
+  if (metadata === undefined || metadata === null) {
+    return null;
+  }
+
+  if (Array.isArray(metadata)) {
+    return metadata.length > 0 ? metadata : null;
+  }
+
+  if (typeof metadata === "object") {
+    const entries = Object.entries(metadata).filter(([, value]) => value !== undefined);
+
+    if (entries.length === 0) {
+      return null;
+    }
+
+    return Object.fromEntries(entries);
+  }
+
+  return metadata;
 }

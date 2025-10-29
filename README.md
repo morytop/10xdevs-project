@@ -62,9 +62,48 @@ OPENROUTER_API_KEY="..." # optional – defaults to env: OPENAI_API_KEY
 
 _Out-of-scope for MVP_: shopping list, nutritional macros, recipe library, mobile apps, multi-language support, offline mode.
 
+## API Endpoints
+
+### `/api/preferences`
+
+- `POST` — Creates user preferences (required: `health_goal`, `diet_type`, `activity_level`; optional: `allergies`, `disliked_products`). Returns status `201` together with the full preferences object.
+- `GET` — Returns the current preferences of the authenticated user. Requires the `Authorization: Bearer <jwt>` header.
+- `PUT` — Updates existing preferences; the payload may include any subset of fields (`null` clears the value). Requires authentication and returns the updated object.
+
+#### Example (`GET`)
+
+```bash
+curl -X GET \
+  https://app.example.com/api/preferences \
+  -H "Authorization: Bearer <jwt-token>"
+```
+
+#### Example (`PUT`)
+
+```bash
+curl -X PUT \
+  https://app.example.com/api/preferences \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "diet_type": "VEGAN",
+    "allergies": ["Nuts"],
+    "disliked_products": null
+  }'
+```
+
+**Response codes**
+
+- `200` — Success (GET/PUT)
+- `201` — Preferences created (POST)
+- `400` — Validation error (`details` contains the list of issues)
+- `401` — Unauthorized
+- `404` — Preferences not found for the user (GET/PUT)
+- `500` — Unexpected server error
+
 ## Project Status
 
-🚧 **In active development.** 
+🚧 **In active development.**
 
 ## License
 
