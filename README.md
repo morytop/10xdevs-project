@@ -101,6 +101,99 @@ curl -X PUT \
 - `404` — Preferences not found for the user (GET/PUT)
 - `500` — Unexpected server error
 
+### `/api/meal-plans`
+
+- `POST` — Generates a new AI-powered meal plan for the authenticated user. Requires user preferences to be set first. Accepts optional `regeneration` boolean (default: `false`) for analytics tracking. Returns status `201` with the generated meal plan containing 3 meals (breakfast, lunch, dinner).
+
+#### Request Body
+
+```json
+{
+  "regeneration": false
+}
+```
+
+#### Response (201 Created)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "meals": [
+    {
+      "name": "Śniadanie: Owsianka z owocami",
+      "ingredients": [
+        { "name": "Płatki owsiane", "amount": "50g" },
+        { "name": "Mleko owsiane", "amount": "200ml" },
+        { "name": "Banan", "amount": "1 szt." }
+      ],
+      "steps": [
+        "Zagotuj mleko owsiane w garnku",
+        "Dodaj płatki owsiane i gotuj 5 minut",
+        "Udekoruj pokrojonym bananem"
+      ],
+      "time": 10
+    },
+    {
+      "name": "Obiad: Makaron z warzywami",
+      "ingredients": [...],
+      "steps": [...],
+      "time": 25
+    },
+    {
+      "name": "Kolacja: Sałatka grecka",
+      "ingredients": [...],
+      "steps": [...],
+      "time": 15
+    }
+  ],
+  "generated_at": "2025-10-27T14:30:00Z",
+  "status": "generated",
+  "created_at": "2025-10-27T14:30:00Z"
+}
+```
+
+**Response codes**
+
+- `201` — Meal plan generated successfully
+- `400` — User preferences not found (must create preferences first)
+- `401` — Unauthorized
+- `409` — Conflict (plan is already being generated, wait and retry)
+- `500` — Generation failed after retries
+- `503` — AI service unavailable
+- `504` — Generation timeout (>30s)
+
+### `/api/meal-plans/current`
+
+- `GET` — Returns the current (most recent) meal plan for the authenticated user.
+
+#### Response (200 OK)
+
+Returns the same structure as `POST /api/meal-plans`.
+
+**Response codes**
+
+- `200` — Success
+- `401` — Unauthorized
+- `404` — No meal plan found for user (generate one first)
+- `500` — Unexpected server error
+
+#### Example
+
+```bash
+# Generate meal plan
+curl -X POST \
+  http://localhost:4321/api/meal-plans \
+  -H "Content-Type: application/json" \
+  -d '{"regeneration": false}'
+
+# Get current meal plan
+curl -X GET \
+  http://localhost:4321/api/meal-plans/current
+```
+
+**Note:** During development, the API uses mock data for faster testing. Set `OPENROUTER_API_KEY` in `.env` and disable mocks for production AI generation.
+
 ## Project Status
 
 🚧 **In active development.**
