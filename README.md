@@ -194,6 +194,115 @@ curl -X GET \
 
 **Note:** During development, the API uses mock data for faster testing. Set `OPENROUTER_API_KEY` in `.env` and disable mocks for production AI generation.
 
+### `/api/feedback`
+
+- `POST` — Creates feedback for the most recent meal plan. Requires `rating` ("THUMBS_UP" or "THUMBS_DOWN"); optional `comment` (max 500 characters). Returns status `201` with the created feedback object.
+
+#### Request Body
+
+```json
+{
+  "rating": "THUMBS_UP",
+  "comment": "Świetny plan, przepisy były proste i smaczne!"
+}
+```
+
+#### Response (201 Created)
+
+```json
+{
+  "id": "660e8400-e29b-41d4-a716-446655440000",
+  "meal_plan_id": "550e8400-e29b-41d4-a716-446655440000",
+  "rating": "THUMBS_UP",
+  "comment": "Świetny plan, przepisy były proste i smaczne!",
+  "created_at": "2025-10-27T15:00:00Z"
+}
+```
+
+**Response codes**
+
+- `201` — Feedback created successfully
+- `400` — Validation error (invalid rating or comment too long)
+- `401` — Unauthorized
+- `404` — No meal plan found (generate a plan first)
+- `409` — Conflict (feedback already exists for this plan)
+- `500` — Unexpected server error
+
+### `/api/feedback/:id`
+
+- `PUT` — Updates existing feedback. Can update `rating` and/or `comment`. At least one field must be provided.
+- `DELETE` — Deletes feedback by ID.
+
+#### Update Example
+
+```bash
+curl -X PUT \
+  http://localhost:4321/api/feedback/660e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer <jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": "THUMBS_DOWN",
+    "comment": "Za dużo czasu przygotowania"
+  }'
+```
+
+**Response codes**
+
+- `200` — Feedback updated successfully
+- `400` — Validation error
+- `401` — Unauthorized
+- `403` — Forbidden (not the owner of this feedback)
+- `404` — Feedback not found
+- `500` — Unexpected server error
+
+### `/api/analytics/events`
+
+- `POST` — Logs an analytics event for the current user. This endpoint is **non-blocking** and always returns `204 No Content` even if database logging fails, ensuring analytics never interrupts user experience.
+
+**Note:** Currently uses default user ID for testing. Authentication will be implemented later.
+
+#### Request Body
+
+```json
+{
+  "action_type": "plan_accepted",
+  "metadata": {
+    "time_on_page": 45,
+    "plan_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+**Available action types:**
+
+- `user_registered` — User registration completed
+- `profile_created` — User preferences created
+- `profile_updated` — User preferences updated
+- `plan_generated` — Meal plan generated
+- `plan_regenerated` — Meal plan regenerated
+- `plan_accepted` — User accepted meal plan (frontend-triggered)
+- `feedback_given` — Feedback submitted
+- `api_error` — API error occurred
+
+**Response codes**
+
+- `204` — No Content (success or hidden failure)
+- `400` — Validation error (invalid action_type or metadata format)
+
+#### Example
+
+```bash
+curl -X POST \
+  http://localhost:4321/api/analytics/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "plan_accepted",
+    "metadata": { "time_on_page": 45 }
+  }'
+```
+
+**Note:** Most analytics events are logged automatically by the backend. The frontend should only use this endpoint for user-initiated events like `plan_accepted`.
+
 ## Project Status
 
 🚧 **In active development.**
