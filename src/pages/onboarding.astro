@@ -1,0 +1,34 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { PreferencesForm } from "@/components/preferences/PreferencesForm";
+import { ToasterProvider } from "@/components/ToasterProvider";
+
+// Sprawdź czy użytkownik ma już preferencje
+// Jeśli tak, przekieruj do dashboard
+const preferencesResponse = await fetch(`${Astro.url.origin}/api/preferences`, {
+  headers: {
+    cookie: Astro.request.headers.get("cookie") || "",
+  },
+});
+
+// TYMCZASOWO WYŁĄCZONE DLA TESTÓW
+// if (preferencesResponse.ok) {
+//   return Astro.redirect("/dashboard");
+// }
+
+// Ustaw prerender na false dla SSR
+export const prerender = false;
+---
+
+<Layout title="Poznajmy Twoje preferencje">
+  <main class="container mx-auto py-8 px-4 min-h-screen">
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">Poznajmy Twoje preferencje</h1>
+      <p class="text-muted-foreground text-lg">
+        To zajmie tylko 2 minuty i pozwoli nam stworzyć idealny plan dla Ciebie
+      </p>
+    </header>
+    <PreferencesForm client:load />
+  </main>
+  <ToasterProvider client:only="react" />
+</Layout>

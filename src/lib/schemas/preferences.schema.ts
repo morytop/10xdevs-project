@@ -30,6 +30,33 @@ export const CreatePreferencesSchema = z.object({
   disliked_products: dislikedProductsSchema.optional().nullable(),
 });
 
+/**
+ * Frontend form schema - validates form data with empty states
+ * Converts empty strings to enum values only on valid input
+ */
+export const PreferencesFormSchema = z.object({
+  health_goal: z.union([z.enum(health_goal_enum), z.literal("")]).refine((val) => val !== "", {
+    message: "Pole 'cel zdrowotny' jest wymagane",
+  }),
+  diet_type: z.union([z.enum(diet_type_enum), z.literal("")]).refine((val) => val !== "", {
+    message: "Pole 'typ diety' jest wymagane",
+  }),
+  activity_level: z
+    .number({
+      required_error: "Pole 'poziom aktywności' jest wymagane",
+      invalid_type_error: "Poziom aktywności musi być liczbą",
+    })
+    .int("Poziom aktywności musi być liczbą całkowitą")
+    .min(1, "Poziom aktywności musi być od 1 do 5")
+    .max(5, "Poziom aktywności musi być od 1 do 5")
+    .nullable()
+    .refine((val) => val !== null, {
+      message: "Pole 'poziom aktywności' jest wymagane",
+    }),
+  allergies: allergiesSchema.default([]),
+  disliked_products: dislikedProductsSchema.default([]),
+});
+
 export const UpdatePreferencesSchema = z
   .object({
     health_goal: z
@@ -53,3 +80,4 @@ export const UpdatePreferencesSchema = z
 
 export type CreatePreferencesInput = z.infer<typeof CreatePreferencesSchema>;
 export type UpdatePreferencesInput = z.infer<typeof UpdatePreferencesSchema>;
+export type PreferencesFormInput = z.infer<typeof PreferencesFormSchema>;
