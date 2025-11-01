@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { AuthenticatedNavigation } from "@/components/layout/AuthenticatedNavigation";
-import { DashboardContent } from "@/components/dashboard/DashboardContent";
+import { ProfileView } from "@/components/preferences/ProfileView";
 import { ToasterProvider } from "@/components/ToasterProvider";
 
 // Wymaga SSR dla sprawdzenia autentykacji
@@ -14,18 +14,22 @@ export const prerender = false;
 //   error,
 // } = await Astro.locals.supabase.auth.getUser();
 
-// // Jeśli niezalogowany, przekieruj do strony głównej
+// // Jeśli niezalogowany, przekieruj do logowania
 // if (error || !user) {
-//   return Astro.redirect("/");
+//   return Astro.redirect("/login");
 // }
 
 const currentPath = Astro.url.pathname;
 ---
 
-<Layout title="Dashboard - AI Meal Planner">
+<Layout title="Mój Profil - AI Meal Planner">
   <AuthenticatedNavigation currentPath={currentPath} client:load />
   <main class="container mx-auto py-8 px-4 min-h-screen">
-    <DashboardContent client:load />
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">Mój Profil</h1>
+      <p class="text-muted-foreground text-lg">Zaktualizuj swoje preferencje żywieniowe</p>
+    </header>
+    <ProfileView client:load />
   </main>
   <ToasterProvider client:only="react" />
 </Layout>

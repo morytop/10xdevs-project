@@ -1,4 +1,4 @@
-import type { CreateUserPreferencesDTO, UserPreferencesDTO } from "@/types";
+import type { CreateUserPreferencesDTO, UpdateUserPreferencesDTO, UserPreferencesDTO } from "@/types";
 
 /**
  * Creates user preferences via API
@@ -43,6 +43,29 @@ export async function getPreferences(): Promise<UserPreferencesDTO | null> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Nie udało się pobrać preferencji" }));
     throw new Error(error.message || "Nie udało się pobrać preferencji");
+  }
+
+  return response.json();
+}
+
+/**
+ * Updates user preferences via API
+ * @param data - Partial user preferences data to update
+ * @returns Updated preferences object
+ * @throws Error with message from API response
+ */
+export async function updatePreferences(data: UpdateUserPreferencesDTO): Promise<UserPreferencesDTO> {
+  const response = await fetch("/api/preferences", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Nie udało się zaktualizować preferencji" }));
+    throw new Error(error.message || "Nie udało się zaktualizować preferencji");
   }
 
   return response.json();

@@ -3,7 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { PreferencesFormSchema } from "@/lib/schemas/preferences.schema";
-import { defaultPreferencesFormData, type PreferencesFormData } from "@/lib/viewmodels/preferences.viewmodel";
+import {
+  defaultPreferencesFormData,
+  type PreferencesFormData,
+  type PreferencesFormProps,
+} from "@/lib/viewmodels/preferences.viewmodel";
 import { createPreferences } from "@/lib/api/preferences.api";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
@@ -15,32 +19,44 @@ import { AllergyCheckboxGroup } from "./AllergyCheckboxGroup";
 import { ProductCombobox } from "./ProductCombobox";
 import { StickyFormFooter } from "./StickyFormFooter";
 import { DraftRestoreModal } from "./DraftRestoreModal";
-import { Button } from "@/components/ui/button";
+import { ActionButtons } from "./ActionButtons";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import type { CreateUserPreferencesDTO, HealthGoal, DietType } from "@/types";
 
 /**
  * Main preferences form component
  * Manages form state, validation, auto-save, and submission
  * Integrates all form field components and handles draft restoration
+ * Supports both "create" and "edit" modes
  */
-export function PreferencesForm() {
+export function PreferencesForm({
+  mode = "create",
+  initialData,
+  onSubmit: onSubmitProp,
+  onCancel,
+  isSubmitting: isSubmittingProp,
+}: Partial<PreferencesFormProps> = {}) {
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [isInternalSubmitting, setIsInternalSubmitting] = useState(false);
+
+  // Use external or internal submitting state
+  const isSubmitting = isSubmittingProp !== undefined ? isSubmittingProp : isInternalSubmitting;
 
   const {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<PreferencesFormData>({
     resolver: zodResolver(PreferencesFormSchema),
-    defaultValues: defaultPreferencesFormData,
+    defaultValues: initialData || defaultPreferencesFormData,
     mode: "onBlur",
   });
 
   // Watch all form values for auto-save
   const formData = watch();
 
-  // Draft restoration
+  // Draft restoration - only in create mode
   const { draft, showModal, loadDraft, clearDraft: clearDraftModal } = useDraftRestore();
 
   const handleContinue = () => {
@@ -57,18 +73,30 @@ export function PreferencesForm() {
     clearDraftModal();
   };
 
-  // Auto-save to localStorage
-  const { clearDraft: clearAutoSave } = useAutoSave(formData, true);
+  // Auto-save to localStorage - only in create mode
+  const { clearDraft: clearAutoSave } = useAutoSave(formData, mode === "create");
 
-  // Handle redirect after successful submission
+  // Track dirty state for edit mode
+  const isDirty = useDirtyForm(initialData, formData);
+
+  // Handle redirect after successful submission (only in create mode)
   useEffect(() => {
-    if (shouldRedirect) {
+    if (shouldRedirect && mode === "create") {
       window.location.href = "/dashboard";
     }
-  }, [shouldRedirect]);
+  }, [shouldRedirect, mode]);
 
   const onSubmit = async (data: PreferencesFormData) => {
+    // If external onSubmit is provided (edit mode), use it
+    if (onSubmitProp) {
+      await onSubmitProp(data);
+      return;
+    }
+
+    // Otherwise use internal create logic (create mode)
     try {
+      setIsInternalSubmitting(true);
+
       // Validate required fields
       if (!data.activity_level) {
         toast.error("Pole 'poziom aktywności' jest wymagane");
@@ -96,12 +124,15 @@ export function PreferencesForm() {
       const errorMessage =
         error instanceof Error ? error.message : "Nie udało się zapisać preferencji. Spróbuj ponownie.";
       toast.error(errorMessage);
+    } finally {
+      setIsInternalSubmitting(false);
     }
   };
 
   return (
     <>
-      {showModal && draft && (
+      {/* Draft restoration modal - only in create mode */}
+      {mode === "create" && showModal && draft && (
         <DraftRestoreModal
           open={showModal}
           onContinue={handleContinue}
@@ -159,9 +190,7 @@ export function PreferencesForm() {
         </FormSection>
 
         <StickyFormFooter>
-          <Button type="submit" disabled={isSubmitting} size="lg">
-            {isSubmitting ? "Zapisuję..." : "Zapisz i wygeneruj plan"}
-          </Button>
+          <ActionButtons mode={mode} isSubmitting={isSubmitting} isDirty={isDirty} onCancel={onCancel} />
         </StickyFormFooter>
       </form>
     </>

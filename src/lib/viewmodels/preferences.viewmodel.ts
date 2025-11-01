@@ -1,4 +1,4 @@
-import type { HealthGoal, DietType } from "@/types";
+import type { HealthGoal, DietType, UserPreferencesDTO } from "@/types";
 
 /**
  * Form data structure matching Zod schema output
@@ -22,6 +22,63 @@ export const defaultPreferencesFormData: PreferencesFormData = {
   allergies: [],
   disliked_products: [],
 };
+
+/**
+ * Stan głównego widoku profilu
+ */
+export interface ProfileViewState {
+  /** Czy trwa ładowanie początkowe danych */
+  isLoading: boolean;
+  /** Czy trwa zapisywanie zmian */
+  isSaving: boolean;
+  /** Czy formularz został zmodyfikowany */
+  isDirty: boolean;
+  /** Komunikat błędu (jeśli wystąpił) */
+  error: string | null;
+  /** Oryginalne dane użytkownika z API */
+  initialData: UserPreferencesDTO | null;
+  /** Obecny stan formularza */
+  formData: PreferencesFormData;
+}
+
+/**
+ * Props formularza preferencji
+ */
+export interface PreferencesFormProps {
+  /** Tryb pracy formularza */
+  mode: "create" | "edit";
+  /** Początkowe dane (tylko w edit mode) */
+  initialData?: PreferencesFormData;
+  /** Callback po submit */
+  onSubmit: (data: PreferencesFormData) => Promise<void>;
+  /** Callback anulowania (tylko w edit mode) */
+  onCancel?: () => void;
+  /** Czy trwa submit */
+  isSubmitting: boolean;
+}
+
+/**
+ * Response z API przy błędzie
+ */
+export interface ApiErrorResponse {
+  error: string;
+  message?: string;
+  details?: string[];
+}
+
+/**
+ * Konwertuje UserPreferencesDTO na PreferencesFormData
+ * Używane przy ładowaniu danych do edycji
+ */
+export function preferencesToFormData(preferences: UserPreferencesDTO): PreferencesFormData {
+  return {
+    health_goal: preferences.health_goal,
+    diet_type: preferences.diet_type,
+    activity_level: preferences.activity_level,
+    allergies: preferences.allergies || [],
+    disliked_products: preferences.disliked_products || [],
+  };
+}
 
 /**
  * Health goal option for select dropdown
