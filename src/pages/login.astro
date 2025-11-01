@@ -1,0 +1,36 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { ToasterProvider } from "@/components/ToasterProvider";
+
+// Disable prerendering to enable SSR
+export const prerender = false;
+
+// Check if user is already logged in
+try {
+  const supabase = Astro.locals.supabase;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // If user has an active session, redirect to dashboard
+  if (session) {
+    return Astro.redirect("/dashboard");
+  }
+} catch {
+  // If session check fails, continue rendering the login form
+  // This is safer than blocking access to the application
+}
+---
+
+<Layout
+  title="Zaloguj się - AI Meal Planner"
+  description="Zaloguj się do AI Meal Planner aby uzyskać dostęp do swoich spersonalizowanych planów posiłków"
+>
+  <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
+    <div class="w-full max-w-md">
+      <LoginForm client:load />
+    </div>
+  </main>
+  <ToasterProvider client:only="react" />
+</Layout>
