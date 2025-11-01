@@ -715,7 +715,7 @@ export const mealsArraySchema = z.tuple([mealSchema, mealSchema, mealSchema]);
 
 - Użyć `fetch()` do wywołania API
 - Headers: `Authorization: Bearer ${OPENROUTER_API_KEY}`
-- Model: rozważyć `google/gemini-2.0-flash-001` (szybki, tani) lub `openai/gpt-4o-mini`
+- Model: `openai/gpt-4o-mini`
 - Prompt: personalizowany na podstawie preferences (health_goal, diet_type, allergies, etc.)
 - Walidacja: sprawdzić czy response ma 3 posiłki przez `mealsArraySchema.parse()`
 

@@ -11,12 +11,79 @@ export const prerender = false;
       <p class="text-muted-foreground text-lg">Witaj w swoim panelu zarządzania planami posiłków</p>
     </header>
 
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-2xl mx-auto space-y-6">
+      <!-- Main Info -->
       <div class="bg-muted rounded-lg p-8 text-center">
         <h2 class="text-xl font-semibold mb-4">Dashboard w trakcie implementacji</h2>
-        <p class="text-muted-foreground">
+        <p class="text-muted-foreground mb-6">
           Ta strona zostanie wkrótce uzupełniona o funkcje zarządzania planami posiłków.
         </p>
+
+        <!-- CTA to Test Page -->
+        <div class="flex flex-col items-center gap-4">
+          <a
+            href="/dashboard-test"
+            class="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-md font-medium transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+              ></path>
+            </svg>
+            Przejdź do Strony Testowej
+          </a>
+          <p class="text-sm text-muted-foreground">Przetestuj generowanie planów posiłków z OpenRouter</p>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/onboarding" class="bg-card border rounded-lg p-6 hover:border-primary transition-colors">
+          <h3 class="font-semibold mb-2">⚙️ Preferencje</h3>
+          <p class="text-sm text-muted-foreground">Ustaw lub zmień swoje preferencje żywieniowe</p>
+        </a>
+
+        <a href="/chat-demo" class="bg-card border rounded-lg p-6 hover:border-primary transition-colors">
+          <h3 class="font-semibold mb-2">💬 Chat Demo</h3>
+          <p class="text-sm text-muted-foreground">Przetestuj streaming chat z OpenRouter</p>
+        </a>
+      </div>
+
+      <!-- Development Info -->
+      <div class="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+        <h3 class="font-semibold mb-2 text-blue-900 dark:text-blue-100">📝 Status Implementacji</h3>
+        <ul class="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+          <li class="flex items-center gap-2">
+            <span class="text-green-600 dark:text-green-400">✓</span>
+            <span>Backend API - Kompletny</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-green-600 dark:text-green-400">✓</span>
+            <span>Onboarding - Kompletny</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-green-600 dark:text-green-400">✓</span>
+            <span>Dashboard Test - Gotowy</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-yellow-600 dark:text-yellow-400">⏳</span>
+            <span>Dashboard UI - W trakcie</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-yellow-600 dark:text-yellow-400">⏳</span>
+            <span>Integracja OpenRouter - Do przetestowania</span>
+          </li>
+        </ul>
       </div>
     </div>
   </main>

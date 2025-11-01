@@ -84,7 +84,7 @@ export const POST = async (context: APIContext) => {
     }
 
     // Step 2: Generate meal plan using service
-    const mealPlansService = createMealPlansService(supabase, true); // useMocks = true
+    const mealPlansService = createMealPlansService(supabase, false); // useMocks = false (use real OpenRouter API)
     let mealPlan;
 
     try {

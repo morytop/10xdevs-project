@@ -1,22 +1,33 @@
 import { mealsArraySchema } from "@/lib/schemas/meal-plans.schema";
 import type { UserPreferencesDTO, Meal } from "@/types";
-
-const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MAX_RETRIES = 3;
-const RETRY_DELAYS = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
-const TIMEOUT_MS = 30000; // 30 seconds
+import { OpenRouterService as BaseOpenRouterService } from "@/lib/openrouter/service";
 
 /**
- * Service for communicating with Openrouter.ai API
- * Handles LLM-based meal plan generation with retry logic and timeout
+ * Service wrapper for meal plan generation using OpenRouter
+ * Uses the advanced OpenRouterService implementation under the hood
+ * Provides backward compatibility with the old interface
  */
 export class OpenRouterService {
-  private readonly apiKey: string;
+  private readonly baseService: BaseOpenRouterService | null;
   private readonly useMocks: boolean;
 
   constructor(apiKey: string, useMocks = true) {
-    this.apiKey = apiKey;
-    this.useMocks = useMocks; // Use mocks during development
+    this.useMocks = useMocks;
+
+    // Only initialize base service if not using mocks
+    if (!useMocks && apiKey) {
+      this.baseService = new BaseOpenRouterService({
+        apiKey,
+        defaultModel: "openai/gpt-4o-mini", // Fast, reliable and cost-effective
+        timeout: 30000, // 30 seconds
+        maxRetries: 3,
+        retryDelay: 1000,
+        siteName: "10xDevs AI Meal Planner",
+        siteUrl: "https://10xdevs-project.com",
+      });
+    } else {
+      this.baseService = null;
+    }
   }
 
   /**
@@ -32,114 +43,80 @@ export class OpenRouterService {
       return this.generateMockMealPlan(preferences);
     }
 
-    return this.generateWithRetry(preferences, 0);
-  }
-
-  /**
-   * Internal method implementing retry logic with exponential backoff
-   */
-  private async generateWithRetry(preferences: UserPreferencesDTO, attempt: number): Promise<[Meal, Meal, Meal]> {
-    try {
-      return await this.callLLMWithTimeout(preferences);
-    } catch (error) {
-      console.error(`[OpenRouter] Generation attempt ${attempt + 1} failed:`, {
-        error: error instanceof Error ? error.message : String(error),
-        attempt: attempt + 1,
-        maxRetries: MAX_RETRIES,
-      });
-
-      // If we've exhausted all retries, throw the error
-      if (attempt >= MAX_RETRIES - 1) {
-        throw new Error(
-          `Failed to generate meal plan after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-
-      // Wait before retrying (exponential backoff)
-      await this.sleep(RETRY_DELAYS[attempt]);
-
-      // Retry
-      return this.generateWithRetry(preferences, attempt + 1);
+    if (!this.baseService) {
+      throw new Error("OpenRouter service not initialized. API key may be missing.");
     }
-  }
 
-  /**
-   * Calls LLM API with timeout protection
-   */
-  private async callLLMWithTimeout(preferences: UserPreferencesDTO): Promise<[Meal, Meal, Meal]> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    // Use the new advanced service with structured messages
+    const messages = [
+      {
+        role: "system" as const,
+        content: this.buildSystemPrompt(),
+      },
+      {
+        role: "user" as const,
+        content: this.buildUserPrompt(preferences),
+      },
+    ];
 
     try {
-      const response = await fetch(OPENROUTER_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://10xdevs-project.com", // Optional: for rankings
-          "X-Title": "10xDevs AI Meal Planner", // Optional: for rankings
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001", // Fast and cost-effective
-          messages: [
-            {
-              role: "system",
-              content: this.buildSystemPrompt(),
-            },
-            {
-              role: "user",
-              content: this.buildUserPrompt(preferences),
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-        signal: controller.signal,
+      console.log("[OpenRouter] Starting meal plan generation...");
+
+      const response = await this.baseService.complete({
+        messages,
+        temperature: 0.7,
+        max_tokens: 2000,
       });
 
-      clearTimeout(timeoutId);
+      const content = response.choices[0].message.content;
 
-      if (!response.ok) {
-        if (response.status === 503) {
-          throw new Error("Service unavailable");
-        }
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
-
-      if (!content) {
-        throw new Error("Empty response from LLM");
-      }
+      console.log("[OpenRouter] Received response, parsing JSON...");
 
       // Parse JSON response and validate structure
       const meals = JSON.parse(content);
-      return mealsArraySchema.parse(meals);
+      const validatedMeals = mealsArraySchema.parse(meals);
+
+      console.log("[OpenRouter] Successfully generated and validated meal plan");
+
+      return validatedMeals;
     } catch (error) {
-      clearTimeout(timeoutId);
+      console.error("[OpenRouter] Failed to generate meal plan:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
 
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("Request timeout");
-      }
-
-      throw error;
+      throw new Error(`Failed to generate meal plan: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   /**
-   * Builds system prompt for LLM
+   * Builds system prompt for LLM with enhanced instructions
    */
   private buildSystemPrompt(): string {
-    return `Jesteś ekspertem dietetykiem. Twoje zadanie to generowanie zdrowych, smacznych planów posiłków na jeden dzień.
-Zawsze zwracaj odpowiedź w formacie JSON z tablicą 3 posiłków (śniadanie, obiad, kolacja).
-Każdy posiłek musi mieć:
-- name: pełna nazwa z typem posiłku (np. "Śniadanie: Owsianka z owocami")
-- ingredients: tablica składników z polami "name" i "amount" (używaj europejskich jednostek: g, ml, szt.)
-- steps: tablica kroków przygotowania
-- time: szacowany czas przygotowania w minutach (liczba całkowita)
+    return `Jesteś ekspertem dietetykiem z 10-letnim doświadczeniem w planowaniu posiłków.
+Twoje zadanie to generowanie REALISTYCZNYCH, SMACZNYCH i ZDROWYCH planów posiłków na jeden dzień.
 
-Zwróć TYLKO poprawny JSON bez dodatkowych komentarzy.`;
+ZASADY:
+- Używaj TYLKO realnych produktów dostępnych w polskich sklepach
+- Porcje muszą być REALISTYCZNE (np. 50g płatków, 200ml mleka, 150g mięsa)
+- Kroki muszą być SZCZEGÓŁOWE i wykonalne dla osoby z podstawowymi umiejętnościami
+- Czas musi być REALISTYCZNY (śniadanie: 10-15min, obiad: 30-45min, kolacja: 15-25min)
+- NIE wymyślaj egzotycznych, trudnodostępnych produktów
+- Przepisy muszą być proste i praktyczne do wykonania w domu
+
+FORMAT ODPOWIEDZI:
+Zwróć tablicę 3 posiłków (śniadanie, obiad, kolacja) w formacie JSON.
+Każdy posiłek MUSI mieć następującą strukturę:
+{
+  "name": "Typ posiłku: Nazwa dania" (np. "Śniadanie: Owsianka z owocami"),
+  "ingredients": [
+    {"name": "Nazwa składnika", "amount": "ilość z jednostką (g, ml, szt.)"}
+  ],
+  "steps": ["Krok 1", "Krok 2", ...],
+  "time": liczba_minut (liczba całkowita)
+}
+
+WAŻNE: Zwróć TYLKO poprawny JSON bez żadnych dodatkowych komentarzy, nagłówków czy formatowania markdown.`;
   }
 
   /**

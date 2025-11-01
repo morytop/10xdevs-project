@@ -28,7 +28,7 @@ export const GET = async (context: APIContext) => {
 
   try {
     // Get current meal plan using service
-    const mealPlansService = createMealPlansService(supabase, true); // useMocks = true
+    const mealPlansService = createMealPlansService(supabase, false); // useMocks = false (use real OpenRouter API)
     const mealPlan = await mealPlansService.getCurrentMealPlan(userId);
 
     // Return success response

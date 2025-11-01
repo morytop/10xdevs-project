@@ -1,0 +1,14 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { ChatStream } from "@/components/ChatStream";
+import { ToasterProvider } from "@/components/ToasterProvider";
+
+export const prerender = false;
+---
+
+<Layout title="AI Chat Demo">
+  <ToasterProvider client:only="react" />
+  <main>
+    <ChatStream client:load />
+  </main>
+</Layout>
