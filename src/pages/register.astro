@@ -1,0 +1,32 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import RegisterForm from "@/components/auth/RegisterForm";
+import { ToasterProvider } from "@/components/ToasterProvider";
+
+// Check if user is already logged in
+try {
+  const supabase = Astro.locals.supabase;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Redirect authenticated users to dashboard
+  if (session) {
+    return Astro.redirect("/dashboard");
+  }
+} catch (error) {
+  console.error("Session check failed:", error);
+}
+
+// Enable SSR for this page
+export const prerender = false;
+---
+
+<Layout title="Rejestracja - AI Meal Planner" description="Załóż konto i zacznij korzystać z AI Meal Planner już dziś">
+  <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
+    <div class="w-full max-w-md">
+      <RegisterForm client:load />
+    </div>
+  </main>
+  <ToasterProvider client:only="react" />
+</Layout>
