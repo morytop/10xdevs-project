@@ -1,0 +1,29 @@
+---
+import { BenefitCard } from "./BenefitCard";
+---
+
+<section id="benefits" class="py-16 md:py-24 px-4 scroll-mt-16" aria-labelledby="benefits-heading">
+  <div class="container max-w-6xl mx-auto">
+    <h2 id="benefits-heading" class="text-3xl md:text-4xl font-bold text-center mb-12">Dlaczego AI Meal Planner?</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <BenefitCard
+        client:load
+        icon="Clock"
+        title="Oszczędność czasu"
+        description="Nie trać godzin na planowanie. AI wygeneruje plan w 10 sekund."
+      />
+      <BenefitCard
+        client:load
+        icon="Target"
+        title="Pełna personalizacja"
+        description="Plan dostosowany do Twoich celów, diety, alergii i preferencji."
+      />
+      <BenefitCard
+        client:load
+        icon="Sparkles"
+        title="Zawsze świeże pomysły"
+        description="Każy plan jest inny. Zapomnij o powtarzalnym menu."
+      />
+    </div>
+  </div>
+</section>

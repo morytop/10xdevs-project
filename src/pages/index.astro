@@ -1,8 +1,25 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import { SkipToContent } from "../components/layout/SkipToContent";
+import { PublicNavigation } from "../components/layout/PublicNavigation";
+import Hero from "../components/landing/Hero.astro";
+import Benefits from "../components/landing/Benefits.astro";
+import HowItWorks from "../components/landing/HowItWorks.astro";
+import CTASection from "../components/landing/CTASection.astro";
+import Footer from "../components/layout/Footer.astro";
 ---
 
-<Layout>
-  <Welcome />
+<Layout
+  title="AI Meal Planner - Spersonalizowane plany posiłków"
+  description="AI wygeneruje dla Ciebie spersonalizowany plan posiłków w kilka sekund. Uwzględniając Twoje cele, dietę i preferencje."
+>
+  <SkipToContent client:load />
+  <PublicNavigation client:load />
+  <main id="main-content" tabindex="-1">
+    <Hero />
+    <Benefits />
+    <HowItWorks />
+    <CTASection />
+  </main>
+  <Footer />
 </Layout>

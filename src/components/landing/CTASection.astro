@@ -1,0 +1,21 @@
+---
+import { Button } from "../ui/button";
+---
+
+<section class="cta-section py-16 md:py-24 px-4" aria-labelledby="cta-heading">
+  <div class="container max-w-4xl mx-auto text-center">
+    <h2 id="cta-heading" class="text-3xl md:text-4xl font-bold mb-4">Gotowy na Twój pierwszy plan?</h2>
+    <p class="text-xl text-muted-foreground mb-8">Dołącz za darmo i wygeneruj spersonalizowany plan w kilka minut.</p>
+    <Button size="lg" className="text-lg px-8 py-6 min-h-[44px] min-w-[44px]" asChild>
+      <a href="/register" aria-label="Zacznij za darmo - przejdź do rejestracji">Zacznij za darmo</a>
+    </Button>
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.05) 100%);
+    border-top: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+</style>

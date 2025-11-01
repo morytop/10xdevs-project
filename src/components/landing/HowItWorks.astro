@@ -1,0 +1,29 @@
+---
+import { StepCard } from "./StepCard";
+---
+
+<section id="how-it-works" class="py-16 md:py-24 px-4 bg-muted/30 scroll-mt-16" aria-labelledby="how-it-works-heading">
+  <div class="container max-w-6xl mx-auto">
+    <h2 id="how-it-works-heading" class="text-3xl md:text-4xl font-bold text-center mb-12">Jak to działa?</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" role="list">
+      <StepCard
+        client:load
+        number={1}
+        title="Wypełnij preferencje"
+        description="Powiedz nam o swoich celach, diecie i alergiach."
+      />
+      <StepCard
+        client:load
+        number={2}
+        title="Wygeneruj plan"
+        description="AI stworzy dla Ciebie plan trzech posiłków na dzisiaj."
+      />
+      <StepCard
+        client:load
+        number={3}
+        title="Gotuj i ciesz się"
+        description="Masz wszystkie składniki i kroki przygotowania."
+      />
+    </div>
+  </div>
+</section>

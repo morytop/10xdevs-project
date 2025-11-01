@@ -1,0 +1,30 @@
+---
+import { Button } from "../ui/button";
+---
+
+<section
+  class="hero min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16"
+  aria-labelledby="hero-heading"
+>
+  <div class="container max-w-4xl mx-auto text-center">
+    <h1 id="hero-heading" class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+      Przestań martwić się, co na obiad
+    </h1>
+    <p class="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+      AI wygeneruje dla Ciebie spersonalizowany plan posiłków w kilka sekund. Uwzględniając Twoje cele, dietę i
+      preferencje.
+    </p>
+    <div class="flex flex-col items-center gap-4">
+      <Button size="lg" className="text-lg px-8 py-6 min-h-[44px] min-w-[44px]" asChild>
+        <a href="/register" aria-label="Zacznij teraz - przejdź do rejestracji">Zacznij teraz</a>
+      </Button>
+      <p class="text-sm text-muted-foreground" role="note">Darmowe konto • Bez karty kredytowej</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    background: linear-gradient(to bottom, hsl(var(--background)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+</style>
