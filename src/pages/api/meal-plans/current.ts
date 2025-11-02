@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 
-import { DEAFULT_USER_ID } from "@/db/supabase.client";
 import { MealPlanNotFoundError, MealPlanServiceError, createMealPlansService } from "@/lib/services/meal-plans.service";
 
 export const prerender = false;
@@ -24,7 +23,25 @@ export const GET = async (context: APIContext) => {
     });
   }
 
-  const userId = DEAFULT_USER_ID; // No auth for now - using default user
+  // Verify authenticated user using Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    // eslint-disable-next-line no-console
+    console.error("[GET /api/meal-plans/current] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby pobrać plan posiłków.",
+    });
+  }
+
+  const userId = user.id;
 
   try {
     // Get current meal plan using service
@@ -54,6 +71,7 @@ export const GET = async (context: APIContext) => {
     }
 
     // Unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[GET /api/meal-plans/current] Unexpected error:", {
       userId,
       error: error instanceof Error ? error.message : String(error),

@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 
-import { DEAFULT_USER_ID } from "@/db/supabase.client";
 import {
   CreatePreferencesSchema,
   UpdatePreferencesSchema,
@@ -29,6 +28,24 @@ export const POST = async (context: APIContext) => {
     });
   }
 
+  // Verify authenticated user using Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    // eslint-disable-next-line no-console
+    console.error("[POST /api/preferences] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby zapisać preferencje.",
+    });
+  }
+
   let requestBody: unknown;
 
   try {
@@ -51,7 +68,7 @@ export const POST = async (context: APIContext) => {
 
   try {
     const preferencesData: CreateUserPreferencesDTO = parseResult.data;
-    const userId = DEAFULT_USER_ID;
+    const userId = user.id;
 
     const preferences = await createPreferences(supabase, userId, preferencesData);
 
@@ -90,7 +107,25 @@ export const GET = async (context: APIContext) => {
     });
   }
 
-  const userId = DEAFULT_USER_ID;
+  // Verify authenticated user using Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    // eslint-disable-next-line no-console
+    console.error("[GET /api/preferences] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby pobrać preferencje.",
+    });
+  }
+
+  const userId = user.id;
 
   try {
     const preferences = await getPreferences(supabase, userId);
@@ -129,7 +164,25 @@ export const PUT = async (context: APIContext) => {
     });
   }
 
-  const userId = DEAFULT_USER_ID;
+  // Verify authenticated user using Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    // eslint-disable-next-line no-console
+    console.error("[PUT /api/preferences] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby zaktualizować preferencje.",
+    });
+  }
+
+  const userId = user.id;
 
   let requestBody: unknown;
 

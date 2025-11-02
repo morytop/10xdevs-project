@@ -6,6 +6,16 @@ import { ToasterProvider } from "@/components/ToasterProvider";
 
 // Wymaga SSR dla sprawdzenia autentykacji
 export const prerender = false;
+// Server-side: jeśli użytkownik nie ma preferencji → redirect na onboarding
+const preferencesResponse = await fetch(`${Astro.url.origin}/api/preferences`, {
+  headers: {
+    cookie: Astro.request.headers.get("cookie") || "",
+  },
+});
+
+if (preferencesResponse.status === 404) {
+  return Astro.redirect("/onboarding");
+}
 
 // TYMCZASOWO WYŁĄCZONE DLA TESTÓW - używamy DEFAULT_USER_ID
 // TODO: Przywrócić auth check przed deployem do produkcji

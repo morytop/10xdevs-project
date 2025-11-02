@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 
-import { DEAFULT_USER_ID } from "@/db/supabase.client";
 import { generateMealPlanSchema } from "@/lib/schemas/meal-plans.schema";
 import { logAnalyticsEvent } from "@/lib/services/analytics.service";
 import {
@@ -32,6 +31,24 @@ export const POST = async (context: APIContext) => {
     });
   }
 
+  // Verify authenticated user using Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    // eslint-disable-next-line no-console
+    console.error("[POST /api/meal-plans] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby wygenerować plan posiłków.",
+    });
+  }
+
   // Parse request body
   let requestBody: unknown;
 
@@ -55,7 +72,8 @@ export const POST = async (context: APIContext) => {
   }
 
   const { regeneration }: GenerateMealPlanDTO = parseResult.data;
-  const userId = DEAFULT_USER_ID; // No auth for now - using default user
+
+  const userId = user.id;
 
   try {
     // Step 1: Get user preferences (required for meal plan generation)
@@ -72,6 +90,7 @@ export const POST = async (context: APIContext) => {
       }
 
       // Other preferences errors
+      // eslint-disable-next-line no-console
       console.error("[POST /api/meal-plans] Failed to fetch preferences:", {
         userId,
         error: error instanceof Error ? error.message : String(error),
@@ -114,6 +133,7 @@ export const POST = async (context: APIContext) => {
       }
 
       // Unexpected errors
+      // eslint-disable-next-line no-console
       console.error("[POST /api/meal-plans] Unexpected error:", {
         userId,
         error: error instanceof Error ? error.message : String(error),
@@ -140,6 +160,7 @@ export const POST = async (context: APIContext) => {
     });
   } catch (error) {
     // Catch-all for unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[POST /api/meal-plans] Unhandled error:", {
       userId,
       error: error instanceof Error ? error.message : String(error),

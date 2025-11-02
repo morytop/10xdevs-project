@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 
-import { DEAFULT_USER_ID } from "@/db/supabase.client";
 import { createFeedbackSchema } from "@/lib/schemas/feedback.schema";
 import { FeedbackServiceError, createFeedbackService } from "@/lib/services/feedback.service";
 import { MealPlanNotFoundError, createMealPlansService } from "@/lib/services/meal-plans.service";
@@ -37,6 +36,23 @@ export const POST = async (context: APIContext) => {
     });
   }
 
+  // Verify authenticated user via Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[POST /api/feedback] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby dodać opinię.",
+    });
+  }
+
   // Parse request body
   let requestBody: unknown;
 
@@ -60,7 +76,7 @@ export const POST = async (context: APIContext) => {
   }
 
   const feedbackData: CreateFeedbackDTO = parseResult.data;
-  const userId = DEAFULT_USER_ID; // No auth for now - using default user
+  const userId = user.id;
 
   try {
     // Create services

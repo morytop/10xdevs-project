@@ -73,7 +73,36 @@ export class OpenRouterService {
       console.log("[OpenRouter] Received response, parsing JSON...");
 
       // Parse JSON response and validate structure
-      const meals = JSON.parse(content);
+      // LLMs sometimes return extraneous text or slightly malformed JSON (trailing commas,
+      // markdown code fences, or additional commentary). Try robust parsing strategies:
+      let meals: unknown;
+
+      const tryParse = (text: string) => {
+        // Remove common markdown code fences
+        const cleaned = text.replace(/```json\s*/g, "").replace(/```/g, "");
+        return JSON.parse(cleaned);
+      };
+
+      try {
+        meals = tryParse(content);
+      } catch (primaryErr) {
+        // Fallback 1: extract first JSON array substring
+        const arrayMatch = content.match(/\[([\s\S]*)\]/m);
+        if (arrayMatch) {
+          const arrayText = `[${arrayMatch[1]}]`;
+          try {
+            meals = tryParse(arrayText);
+          } catch {
+            // Fallback 2: attempt to fix trailing commas inside arrays/objects
+            const cleanedArray = arrayText.replace(/,\s*(?=[\]}])/g, "");
+            meals = JSON.parse(cleanedArray);
+          }
+        } else {
+          // Re-throw original parse error if we can't recover
+          throw primaryErr;
+        }
+      }
+
       const validatedMeals = mealsArraySchema.parse(meals);
 
       console.log("[OpenRouter] Successfully generated and validated meal plan");

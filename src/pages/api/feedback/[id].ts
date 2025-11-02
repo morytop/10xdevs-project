@@ -1,6 +1,5 @@
 import type { APIContext } from "astro";
 
-import { DEAFULT_USER_ID } from "@/db/supabase.client";
 import { feedbackIdSchema, updateFeedbackSchema } from "@/lib/schemas/feedback.schema";
 import {
   FeedbackForbiddenError,
@@ -42,6 +41,23 @@ export const PUT = async (context: APIContext) => {
     });
   }
 
+  // Verify authenticated user via Supabase server client
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[PUT /api/feedback/:id] auth.getUser failed:", authError.message);
+  }
+
+  if (!user) {
+    return createErrorResponse(401, {
+      error: "Unauthorized",
+      message: "Musisz być zalogowany, aby zaktualizować opinię.",
+    });
+  }
+
   // Validate feedback ID from URL params
   const feedbackId = context.params.id;
 
@@ -78,7 +94,7 @@ export const PUT = async (context: APIContext) => {
 
   const feedbackData: UpdateFeedbackDTO = parseResult.data;
   const validatedFeedbackId = idParseResult.data; // Use validated ID from Zod
-  const userId = DEAFULT_USER_ID; // No auth for now - using default user
+  const userId = user.id;
 
   try {
     // Create services
