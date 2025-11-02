@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { supabaseClient } from "@/db/supabase.client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AuthError } from "@supabase/supabase-js";
+// Server-side registration is handled via the API endpoint at /api/auth/register
 
 // ============================================================================
 // TypeScript Interfaces
@@ -218,19 +217,41 @@ export default function RegisterForm() {
   };
 
   /**
-   * Handle Supabase Auth errors
-   * @param error - Auth error from Supabase
+   * Handle authentication errors (server or client)
+   * @param error - Error object or message
    */
-  const handleAuthError = (error: AuthError) => {
+  const handleAuthError = (error: unknown) => {
     let errorMessage = "Wystąpił błąd. Spróbuj ponownie.";
 
-    // Map Supabase errors to user-friendly messages
-    if (error.message.includes("already registered") || error.message.includes("User already registered")) {
+    // Helper to safely extract message from unknown error
+    interface ErrorLike {
+      message?: string;
+      status?: number;
+    }
+
+    const extractMessage = (err: unknown): string => {
+      if (typeof err === "string") return err;
+      if (err && typeof err === "object" && "message" in err && typeof (err as ErrorLike).message === "string") {
+        return (err as ErrorLike).message as string;
+      }
+      return "";
+    };
+
+    const message = String(extractMessage(error));
+
+    if (
+      message.includes("already registered") ||
+      message.includes("User already registered") ||
+      message.includes("duplicate")
+    ) {
       errorMessage = "Ten adres email jest już zajęty";
-    } else if (error.message.includes("network") || error.message.includes("fetch")) {
+    } else if (message.includes("network") || message.includes("fetch")) {
       errorMessage = "Sprawdź połączenie internetowe i spróbuj ponownie";
-    } else if (error.status === 500 || (error.status && error.status >= 500)) {
+    } else if ((error as ErrorLike)?.status === 500 || ((error as ErrorLike)?.status ?? 0) >= 500) {
       errorMessage = "Wystąpił błąd serwera. Spróbuj ponownie za chwilę";
+    } else if (message) {
+      // Fallback to server-provided message when available
+      errorMessage = message;
     }
 
     setErrors({ general: errorMessage });
@@ -253,26 +274,43 @@ export default function RegisterForm() {
     setErrors({}); // Clear previous errors
 
     try {
-      // Call Supabase Auth API
-      const { error } = await supabaseClient.auth.signUp({
-        email: formData.email,
-        password: formData.password,
+      // Call our server-side registration endpoint
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email.trim(), password: formData.password }),
       });
 
-      if (error) {
-        handleAuthError(error);
+      const payload = await res.json();
+
+      if (!res.ok) {
+        handleAuthError(payload?.error ?? payload?.message ?? "Wystąpił błąd podczas rejestracji");
         return;
       }
 
-      // Success - user is automatically logged in by Supabase
-      // Redirect to onboarding
-      toast.success("Witaj w AI Meal Planner!");
-      window.location.href = "/onboarding";
-    } catch {
-      // Handle network errors
-      setErrors({
-        general: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie",
-      });
+      // If registration requires email confirmation, inform the user
+      if (payload?.requiresConfirmation) {
+        toast.success("Konto utworzone. Sprawdź skrzynkę — wysłaliśmy link potwierdzający rejestrację.");
+        // Redirect user to login so they can sign in after confirming email
+        window.location.href = "/login";
+        return;
+      }
+
+      // If session exists, user is signed in immediately
+      if (payload?.session) {
+        toast.success("Witaj w AI Meal Planner!");
+        window.location.href = "/onboarding";
+        return;
+      }
+
+      // Fallback success message
+      toast.success("Konto utworzone. Sprawdź skrzynkę e-mail, aby potwierdzić rejestrację.");
+      window.location.href = "/login";
+    } catch (error) {
+      // Log unexpected submit errors for debugging
+      // eslint-disable-next-line no-console
+      console.error("Register submit error:", error);
+      setErrors({ general: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie" });
       toast.error("Wystąpił nieoczekiwany błąd");
     } finally {
       setIsLoading(false);
