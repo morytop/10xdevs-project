@@ -6,20 +6,13 @@ import { ToasterProvider } from "@/components/ToasterProvider";
 // Disable prerendering to enable SSR
 export const prerender = false;
 
-// Check if user is already logged in
-try {
-  const supabase = Astro.locals.supabase;
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // If user has an active session, redirect to dashboard
-  if (session) {
-    return Astro.redirect("/dashboard");
-  }
-} catch {
-  // If session check fails, continue rendering the login form
-  // This is safer than blocking access to the application
+/**
+ * Additional SSR check for faster UX (optional, middleware already handles this)
+ * If user is already logged in via Astro.locals.user (set by middleware),
+ * redirect immediately to dashboard without rendering the form
+ */
+if (Astro.locals.user) {
+  return Astro.redirect("/dashboard");
 }
 ---
 

@@ -3,23 +3,17 @@ import Layout from "@/layouts/Layout.astro";
 import RegisterForm from "@/components/auth/RegisterForm";
 import { ToasterProvider } from "@/components/ToasterProvider";
 
-// Check if user is already logged in
-try {
-  const supabase = Astro.locals.supabase;
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // Redirect authenticated users to dashboard
-  if (session) {
-    return Astro.redirect("/dashboard");
-  }
-} catch (error) {
-  console.error("Session check failed:", error);
-}
-
 // Enable SSR for this page
 export const prerender = false;
+
+/**
+ * Additional SSR check for faster UX (optional, middleware already handles this)
+ * If user is already logged in via Astro.locals.user (set by middleware),
+ * redirect immediately to dashboard without rendering the form
+ */
+if (Astro.locals.user) {
+  return Astro.redirect("/dashboard");
+}
 ---
 
 <Layout title="Rejestracja - AI Meal Planner" description="Załóż konto i zacznij korzystać z AI Meal Planner już dziś">

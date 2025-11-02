@@ -270,8 +270,13 @@ export function LoginForm() {
       // Sukces - sesja została automatycznie zapisana przez Supabase
       if (data.session) {
         toast.success("Witaj ponownie!");
-        // Przekierowanie na dashboard
-        window.location.href = "/dashboard";
+
+        // Odczytaj parametr redirectTo z URL (jeśli istnieje)
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get("redirectTo");
+
+        // Przekierowanie: prioritetowo na redirectTo, domyślnie na /dashboard
+        window.location.href = redirectTo || "/dashboard";
       }
     } catch {
       // Obsługa nieoczekiwanych błędów
