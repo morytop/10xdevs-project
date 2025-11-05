@@ -13,6 +13,11 @@ AI Meal Planner is a web application that leverages Large Language Models (LLMs)
 - **CI/CD & Hosting:** GitHub Actions · Docker · DigitalOcean
 - **Node Version:** **22.14.0** (`.nvmrc`)
 
+## Testing
+
+- **Unit tests:** Vitest + React Testing Library — Vitest as test runner and assertion framework; React Testing Library for DOM-focused component tests.
+- **End-to-end (E2E) tests:** Playwright — cross-browser E2E automation for critical user flows, runnable locally and in CI.
+
 ## Getting Started Locally
 
 ```bash
