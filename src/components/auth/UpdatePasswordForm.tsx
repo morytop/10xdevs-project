@@ -1,220 +1,60 @@
-import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
-import { supabaseClient } from "@/db/supabase.client";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
+import { useUpdatePassword, useRecoverySession } from "@/hooks/useAuth";
+import { UpdatePasswordFormSchema, type UpdatePasswordFormData } from "@/lib/schemas/auth.schema";
 
 /**
  * UpdatePasswordForm Component
  *
- * Formularz do ustawiania nowego hasła po kliknięciu w link resetujący.
- * Waliduje token recovery z Supabase, weryfikuje poprawność hasła
- * i aktualizuje hasło użytkownika.
+ * Form for setting a new password after clicking the reset link.
+ * Validates recovery token from Supabase, verifies password correctness
+ * and updates user password.
  */
 export default function UpdatePasswordForm() {
-  // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
+  const { mutate, isLoading, error, isSuccess } = useUpdatePassword();
+  const { isLoading: isCheckingToken, error: tokenError, isValid: isTokenValid } = useRecoverySession();
 
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [passwordError, setPasswordError] = useState<string>("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [apiError, setApiError] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
 
-  // ============================================================================
-  // EFFECTS
-  // ============================================================================
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<UpdatePasswordFormData>({
+    resolver: zodResolver(UpdatePasswordFormSchema),
+    mode: "onChange",
+  });
 
-  /**
-   * Sprawdzenie czy użytkownik ma aktywną sesję recovery
-   * (przyszedł z linku w emailu)
-   */
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data, error } = await supabaseClient.auth.getSession();
+  const watchedPassword = watch("password");
+  const watchedConfirmPassword = watch("confirmPassword");
 
-        if (error || !data.session) {
-          setIsTokenValid(false);
-          setApiError("Link resetujący wygasł lub jest nieprawidłowy. Poproś o nowy link.");
-          return;
-        }
-
-        setIsTokenValid(true);
-      } catch {
-        setIsTokenValid(false);
-        setApiError("Nie udało się zweryfikować linku. Spróbuj ponownie.");
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  // ============================================================================
-  // VALIDATION FUNCTIONS
-  // ============================================================================
-
-  /**
-   * Walidacja pola hasła
-   * @param password - Hasło do walidacji
-   * @returns Komunikat błędu lub null jeśli poprawne
-   */
-  const validatePassword = (password: string): string | null => {
-    if (!password.trim()) {
-      return "Hasło jest wymagane";
-    }
-
-    if (password.length < 8) {
-      return "Hasło musi mieć co najmniej 8 znaków";
-    }
-
-    return null;
+  const onSubmit = (data: UpdatePasswordFormData) => {
+    mutate(data);
   };
 
-  /**
-   * Walidacja pola potwierdzenia hasła
-   * @param confirmPassword - Potwierdzenie hasła
-   * @param originalPassword - Oryginalne hasło
-   * @returns Komunikat błędu lub null jeśli poprawne
-   */
-  const validateConfirmPassword = (confirmPassword: string, originalPassword: string): string | null => {
-    if (!confirmPassword.trim()) {
-      return "Potwierdzenie hasła jest wymagane";
-    }
-
-    if (confirmPassword !== originalPassword) {
-      return "Hasła nie są identyczne";
-    }
-
-    return null;
-  };
-
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
-
-  /**
-   * Obsługa zmiany wartości pola hasła
-   * @param e - Event z pola input
-   */
-  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-
-    // Reset błędów podczas wpisywania
-    if (passwordError) {
-      setPasswordError("");
-    }
-    if (apiError) {
-      setApiError("");
-    }
-    // Jeśli confirmPassword już ma wartość, zwaliduj ponownie
-    if (confirmPassword && confirmPasswordError) {
-      setConfirmPasswordError("");
-    }
-  };
-
-  /**
-   * Obsługa zmiany wartości pola potwierdzenia hasła
-   * @param e - Event z pola input
-   */
-  const handleConfirmPasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value);
-
-    // Reset błędu podczas wpisywania
-    if (confirmPasswordError) {
-      setConfirmPasswordError("");
-    }
-    if (apiError) {
-      setApiError("");
-    }
-  };
-
-  /**
-   * Toggle widoczności hasła
-   */
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
-  /**
-   * Toggle widoczności potwierdzenia hasła
-   */
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword((prev) => !prev);
   };
 
-  /**
-   * Obsługa submit formularza
-   * @param e - Event formularza
-   */
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    // Zapobieganie domyślnej akcji formularza
-    e.preventDefault();
-
-    // Reset poprzednich błędów
-    setPasswordError("");
-    setConfirmPasswordError("");
-    setApiError("");
-
-    // Walidacja pola hasła
-    const passwordValidationError = validatePassword(password);
-    if (passwordValidationError) {
-      setPasswordError(passwordValidationError);
-      return;
-    }
-
-    // Walidacja pola potwierdzenia hasła
-    const confirmPasswordValidationError = validateConfirmPassword(confirmPassword, password);
-    if (confirmPasswordValidationError) {
-      setConfirmPasswordError(confirmPasswordValidationError);
-      return;
-    }
-
-    // Wywołanie API
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabaseClient.auth.updateUser({
-        password: password,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Sukces
-      setIsSuccess(true);
-
-      // Przekierowanie po 2 sekundach
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Update password error:", err);
-      setApiError("Wystąpił błąd podczas aktualizacji hasła. Spróbuj ponownie później.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isSubmitDisabled = isLoading || !watchedPassword || !watchedConfirmPassword || !isValid;
 
   // ============================================================================
   // RENDER - LOADING STATE (checking token)
   // ============================================================================
 
-  if (isTokenValid === null) {
+  if (isCheckingToken) {
     return (
       <div className="bg-white shadow-lg rounded-lg p-8">
         <div className="text-center">
@@ -233,7 +73,7 @@ export default function UpdatePasswordForm() {
       <div className="space-y-6 bg-white shadow-lg rounded-lg p-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{apiError || "Link resetujący wygasł lub jest nieprawidłowy."}</AlertDescription>
+          <AlertDescription>{tokenError || "Link resetujący wygasł lub jest nieprawidłowy."}</AlertDescription>
         </Alert>
 
         <div className="text-center space-y-4">
@@ -280,17 +120,17 @@ export default function UpdatePasswordForm() {
 
   return (
     <div className="space-y-6 bg-white shadow-lg rounded-lg p-8">
-      {/* Błąd API */}
-      {apiError && (
+      {/* API Error */}
+      {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{apiError}</AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {/* Formularz */}
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        {/* Pole nowego hasła */}
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+        {/* New Password Field */}
         <div className="space-y-2">
           <Label htmlFor="password" className="text-sm font-medium text-gray-700">
             Nowe hasło <span className="text-red-600">*</span>
@@ -298,17 +138,15 @@ export default function UpdatePasswordForm() {
           <div className="relative">
             <Input
               id="password"
-              name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Co najmniej 8 znaków"
-              value={password}
-              onChange={handlePasswordChange}
               disabled={isLoading}
               required
               autoComplete="new-password"
-              aria-invalid={!!passwordError}
-              aria-describedby={passwordError ? "password-error" : undefined}
-              className={passwordError ? "border-red-500 focus-visible:ring-red-500 pr-10" : "pr-10"}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? "password-error" : undefined}
+              className={errors.password ? "border-red-500 focus-visible:ring-red-500 pr-10" : "pr-10"}
+              {...register("password")}
             />
             <button
               type="button"
@@ -319,14 +157,14 @@ export default function UpdatePasswordForm() {
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {passwordError && (
+          {errors.password && (
             <p id="password-error" role="alert" className="text-sm text-red-600">
-              {passwordError}
+              {errors.password.message}
             </p>
           )}
         </div>
 
-        {/* Pole potwierdzenia hasła */}
+        {/* Confirm Password Field */}
         <div className="space-y-2">
           <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
             Potwierdź hasło <span className="text-red-600">*</span>
@@ -334,17 +172,15 @@ export default function UpdatePasswordForm() {
           <div className="relative">
             <Input
               id="confirmPassword"
-              name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Wprowadź hasło ponownie"
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
               disabled={isLoading}
               required
               autoComplete="new-password"
-              aria-invalid={!!confirmPasswordError}
-              aria-describedby={confirmPasswordError ? "confirm-password-error" : undefined}
-              className={confirmPasswordError ? "border-red-500 focus-visible:ring-red-500 pr-10" : "pr-10"}
+              aria-invalid={!!errors.confirmPassword}
+              aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+              className={errors.confirmPassword ? "border-red-500 focus-visible:ring-red-500 pr-10" : "pr-10"}
+              {...register("confirmPassword")}
             />
             <button
               type="button"
@@ -355,19 +191,19 @@ export default function UpdatePasswordForm() {
               {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
-          {confirmPasswordError && (
+          {errors.confirmPassword && (
             <p id="confirm-password-error" role="alert" className="text-sm text-red-600">
-              {confirmPasswordError}
+              {errors.confirmPassword.message}
             </p>
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
           {isLoading ? "Aktualizowanie..." : "Ustaw nowe hasło"}
         </Button>
       </form>
 
-      {/* Link powrotny */}
+      {/* Back to login link */}
       <div className="text-center">
         <a href="/login" className="text-sm text-blue-600 hover:text-blue-500 font-medium">
           Wróć do logowania
