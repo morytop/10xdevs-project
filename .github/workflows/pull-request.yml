@@ -107,11 +107,11 @@ jobs:
           else
             echo "✅ E2E_USERNAME is set"
           fi
-          if [ -z "$E2E_USERNAME_PASSWORD" ]; then
-            echo "❌ E2E_USERNAME_PASSWORD is not set"
+          if [ -z "$E2E_PASSWORD" ]; then
+            echo "❌ E2E_PASSWORD is not set"
             exit 1
           else
-            echo "✅ E2E_USERNAME_PASSWORD is set"
+            echo "✅ E2E_PASSWORD is set"
           fi
 
       - name: Run E2E tests
