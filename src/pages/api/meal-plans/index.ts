@@ -107,7 +107,7 @@ export const POST = async (context: APIContext) => {
     let mealPlan;
 
     try {
-      mealPlan = await mealPlansService.generateMealPlan(userId, preferences, regeneration || false);
+      mealPlan = await mealPlansService.generateMealPlan(userId, preferences);
     } catch (error) {
       if (error instanceof MealPlanGenerationError) {
         return createErrorResponse(500, {

@@ -14,7 +14,7 @@ import { RegisterFormSchema, type RegisterFormData } from "@/lib/schemas/auth.sc
  * and complete form state management
  */
 export default function RegisterForm() {
-  const { mutate, isLoading, error } = useRegister();
+  const { mutate, isLoading } = useRegister();
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState<boolean>(false);
 

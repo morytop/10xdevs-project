@@ -39,12 +39,7 @@ export const POST = async (context: APIContext) => {
   // Verify authenticated user via Supabase server client
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
-
-  if (authError) {
-    console.error("[POST /api/feedback] auth.getUser failed:", authError.message);
-  }
 
   if (!user) {
     return createErrorResponse(401, {
@@ -108,11 +103,6 @@ export const POST = async (context: APIContext) => {
     }
 
     // Handle unexpected errors
-    console.error("[POST /api/feedback] Unexpected error:", {
-      userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-
     return createErrorResponse(500, {
       error: "Internal server error",
       message: "Wystąpił błąd podczas zapisywania opinii",

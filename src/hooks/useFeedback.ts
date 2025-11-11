@@ -73,10 +73,7 @@ export function useFeedback() {
       });
 
       toast.success("Dziękujemy za opinię!");
-    } catch (error) {
-      // Log błędu dla debugowania
-      console.error("Failed to submit feedback:", error);
-
+    } catch {
       // Rollback do poprzedniego stanu
       setFeedbackState({
         ...previousState,

@@ -196,8 +196,8 @@ export function useMealPlan() {
             plan_id: plan.id,
           },
         }),
-      }).catch((error) => {
-        console.error("Failed to track plan generation:", error);
+      }).catch(() => {
+        // Ignore analytics errors
       });
     } catch (error) {
       // Obsługa AbortError (anulowanie przez użytkownika)

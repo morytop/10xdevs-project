@@ -60,8 +60,6 @@ export class OpenRouterService {
     ];
 
     try {
-      console.log("[OpenRouter] Starting meal plan generation...");
-
       const response = await this.baseService.complete({
         messages,
         temperature: 0.7,
@@ -69,8 +67,6 @@ export class OpenRouterService {
       });
 
       const content = response.choices[0].message.content;
-
-      console.log("[OpenRouter] Received response, parsing JSON...");
 
       // Parse JSON response and validate structure
       // LLMs sometimes return extraneous text or slightly malformed JSON (trailing commas,
@@ -105,15 +101,8 @@ export class OpenRouterService {
 
       const validatedMeals = mealsArraySchema.parse(meals);
 
-      console.log("[OpenRouter] Successfully generated and validated meal plan");
-
       return validatedMeals;
     } catch (error) {
-      console.error("[OpenRouter] Failed to generate meal plan:", {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-
       throw new Error(`Failed to generate meal plan: ${error instanceof Error ? error.message : String(error)}`);
     }
   }

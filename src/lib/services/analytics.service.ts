@@ -23,8 +23,8 @@ export async function logAnalyticsEvent(
       timestamp: new Date().toISOString(),
       metadata: sanitizedMetadata,
     });
-  } catch (error) {
-    console.error("Analytics logging failed:", error);
+  } catch {
+    // Ignore analytics errors
   }
 }
 

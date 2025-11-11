@@ -31,8 +31,7 @@ export function AuthenticatedNavigation({ currentPath = "" }: AuthenticatedNavig
       await fetch("/api/auth/logout", { method: "POST" });
       // Redirect na stronę główną
       window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch {
       // Fallback: wyczyść localStorage i redirect
       localStorage.clear();
       window.location.href = "/";

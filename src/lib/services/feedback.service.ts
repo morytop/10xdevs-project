@@ -76,11 +76,6 @@ export class FeedbackService {
         .single();
 
       if (error) {
-        console.error("[FeedbackService] Failed to create feedback:", {
-          userId,
-          mealPlanId: mealPlan.id,
-          error: error.message,
-        });
         throw new FeedbackServiceError("Nie udało się zapisać opinii");
       }
 
@@ -91,8 +86,7 @@ export class FeedbackService {
           meal_plan_id: feedback.meal_plan_id,
           rating: feedback.rating,
         });
-      } catch (error) {
-        console.error("[FeedbackService] Analytics logging failed:", error);
+      } catch {
         // Don't throw - this shouldn't fail the feedback creation
       }
 
@@ -104,11 +98,6 @@ export class FeedbackService {
       }
 
       // Wrap unexpected errors
-      console.error("[FeedbackService] Unexpected error:", {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
       throw new FeedbackServiceError("Wystąpił błąd podczas zapisywania opinii");
     }
   }
@@ -153,11 +142,6 @@ export class FeedbackService {
         .single();
 
       if (error) {
-        console.error("[FeedbackService] Failed to update feedback:", {
-          userId,
-          feedbackId,
-          error: error.message,
-        });
         throw new FeedbackServiceError("Nie udało się zaktualizować opinii");
       }
 
@@ -173,12 +157,6 @@ export class FeedbackService {
       }
 
       // Wrap unexpected errors
-      console.error("[FeedbackService] Unexpected error:", {
-        userId,
-        feedbackId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
       throw new FeedbackServiceError("Wystąpił błąd podczas aktualizacji opinii");
     }
   }
@@ -202,10 +180,6 @@ export class FeedbackService {
       .maybeSingle();
 
     if (error) {
-      console.error("[FeedbackService] Failed to fetch feedback:", {
-        feedbackId,
-        error: error.message,
-      });
       throw new FeedbackServiceError("Nie udało się pobrać opinii");
     }
 

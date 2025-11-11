@@ -51,12 +51,11 @@ export class MealPlansService {
    *
    * @param userId - User's unique identifier
    * @param preferences - User's dietary preferences and requirements
-   * @param regeneration - Whether this is a regeneration (for analytics)
    * @returns Promise resolving to the generated meal plan
    * @throws MealPlanGenerationError if generation fails
    * @throws MealPlanServiceError if database operations fail
    */
-  async generateMealPlan(userId: string, preferences: UserPreferencesDTO, regeneration: boolean): Promise<MealPlanDTO> {
+  async generateMealPlan(userId: string, preferences: UserPreferencesDTO): Promise<MealPlanDTO> {
     if (!userId) {
       throw new MealPlanServiceError("User ID is required");
     }
@@ -73,22 +72,14 @@ export class MealPlansService {
       }
 
       // Step 1: Create/update pending record in database
-      const pendingPlan = await this.createPendingPlan(userId);
+      await this.createPendingPlan(userId);
 
       // Step 2: Generate meals using AI (with retry logic and timeout)
       let meals: [Meal, Meal, Meal];
-      let generationError: Error | null = null;
 
       try {
         meals = await this.openRouterService.generateMealPlan(preferences);
-      } catch (error) {
-        generationError = error instanceof Error ? error : new Error(String(error));
-        console.error("[MealPlansService] Generation failed:", {
-          userId,
-          regeneration,
-          error: generationError.message,
-        });
-
+      } catch {
         // Step 3a: Update status to "error" if generation failed
         await this.updatePlanStatus(userId, "error");
 
@@ -109,11 +100,6 @@ export class MealPlansService {
       }
 
       // Wrap unexpected errors
-      console.error("[MealPlansService] Unexpected error:", {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
       throw new MealPlanServiceError("Wystąpił błąd podczas generowania planu");
     }
   }
@@ -141,10 +127,6 @@ export class MealPlansService {
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
-        console.error("[MealPlansService] Failed to fetch meal plan:", {
-          userId,
-          error: error.message,
-        });
         throw new MealPlanServiceError("Nie udało się pobrać planu posiłków");
       }
 
@@ -161,11 +143,6 @@ export class MealPlansService {
       }
 
       // Wrap unexpected errors
-      console.error("[MealPlansService] Unexpected error:", {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
       throw new MealPlanServiceError("Wystąpił błąd podczas pobierania planu");
     }
   }
@@ -183,10 +160,6 @@ export class MealPlansService {
       .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
-      console.error("[MealPlansService] Failed to check existing plan:", {
-        userId,
-        error: error.message,
-      });
       // Don't throw - allow generation to proceed
       return null;
     }
@@ -218,10 +191,6 @@ export class MealPlansService {
       .single();
 
     if (error) {
-      console.error("[MealPlansService] Failed to create pending plan:", {
-        userId,
-        error: error.message,
-      });
       throw new MealPlanServiceError("Nie udało się utworzyć planu");
     }
 
@@ -253,10 +222,6 @@ export class MealPlansService {
       .single();
 
     if (error) {
-      console.error("[MealPlansService] Failed to save meal plan:", {
-        userId,
-        error: error.message,
-      });
       throw new MealPlanServiceError("Nie udało się zapisać planu");
     }
 
@@ -269,16 +234,8 @@ export class MealPlansService {
    * @private
    */
   private async updatePlanStatus(userId: string, status: "pending" | "generated" | "error") {
-    const { error } = await this.supabase.from("meal_plans").update({ status }).eq("user_id", userId);
-
-    if (error) {
-      console.error("[MealPlansService] Failed to update plan status:", {
-        userId,
-        status,
-        error: error.message,
-      });
-      // Don't throw - this is a best-effort update
-    }
+    await this.supabase.from("meal_plans").update({ status }).eq("user_id", userId);
+    // Don't throw on error - this is a best-effort update
   }
 
   /**

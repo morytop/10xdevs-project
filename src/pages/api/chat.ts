@@ -60,8 +60,6 @@ export const POST = async (context: APIContext) => {
     // Zwrócenie odpowiedzi
     return createJsonResponse(response, 200);
   } catch (error) {
-    console.error("Chat API error:", error);
-
     // Obsługa znanych błędów OpenRouter
     if (error instanceof Error) {
       const statusCode = getErrorStatusCode(error);

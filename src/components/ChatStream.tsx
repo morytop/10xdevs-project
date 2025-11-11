@@ -97,8 +97,8 @@ export function ChatStream() {
                 accumulatedContent += parsed.content;
                 setStreamingContent(accumulatedContent);
               }
-            } catch (error) {
-              console.error("Failed to parse SSE data:", error);
+            } catch {
+              // Ignore parse errors for individual chunks
             }
           }
         }
@@ -109,7 +109,6 @@ export function ChatStream() {
         return;
       }
 
-      console.error("Error streaming message:", error);
       toast.error(error instanceof Error ? error.message : "Nie udało się wysłać wiadomości. Spróbuj ponownie.");
 
       // Clear streaming content on error

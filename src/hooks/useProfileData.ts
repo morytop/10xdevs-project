@@ -40,7 +40,6 @@ export function useProfileData(): UseProfileDataReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Nie udało się pobrać preferencji. Spróbuj ponownie.";
       setError(errorMessage);
-      console.error("[useProfileData]", err);
     } finally {
       setIsLoading(false);
     }

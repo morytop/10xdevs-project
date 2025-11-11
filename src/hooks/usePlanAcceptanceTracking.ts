@@ -66,9 +66,8 @@ export function usePlanAcceptanceTracking(planId: string | null, isGenerating: b
               time_on_page: timeOnPage,
             },
           }),
-        }).catch((error) => {
+        }).catch(() => {
           // Błędy analytics nie wpływają na UX
-          console.error("Failed to track plan acceptance:", error);
         });
 
         hasTrackedRef.current = true;

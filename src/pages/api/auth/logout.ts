@@ -17,8 +17,6 @@ export const POST: APIRoute = async ({ locals }) => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Logout error:", error.message);
-
       // Return structured error response
       return new Response(
         JSON.stringify({
@@ -44,9 +42,7 @@ export const POST: APIRoute = async ({ locals }) => {
 
     // Success - return 204 No Content
     return new Response(null, { status: 204 });
-  } catch (error) {
-    console.error("Unexpected logout error:", error);
-
+  } catch {
     return new Response(
       JSON.stringify({
         error: "Internal server error",

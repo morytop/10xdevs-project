@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { signIn, signUp, resetPassword, updatePassword, getRecoverySession } from "@/lib/services/auth.service";
+import { signIn, resetPassword, updatePassword, getRecoverySession } from "@/lib/services/auth.service";
 import { registerUser } from "@/lib/api/auth.api";
 import type {
   LoginFormData,

@@ -54,7 +54,6 @@ export function Chat() {
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error("Error sending message:", error);
       toast.error(error instanceof Error ? error.message : "Nie udało się wysłać wiadomości. Spróbuj ponownie.");
     } finally {
       setLoading(false);

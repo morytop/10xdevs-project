@@ -81,7 +81,6 @@ export function ProfileView() {
       const errorMessage =
         error instanceof Error ? error.message : "Nie udało się zaktualizować preferencji. Spróbuj ponownie.";
       toast.error(errorMessage);
-      console.error("[ProfileView] Update error:", error);
     } finally {
       setIsSaving(false);
     }

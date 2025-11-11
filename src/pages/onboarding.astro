@@ -5,13 +5,12 @@ import { ToasterProvider } from "@/components/ToasterProvider";
 
 // Sprawdź czy użytkownik ma już preferencje
 // Jeśli tak, przekieruj do dashboard
-const preferencesResponse = await fetch(`${Astro.url.origin}/api/preferences`, {
-  headers: {
-    cookie: Astro.request.headers.get("cookie") || "",
-  },
-});
-
 // TYMCZASOWO WYŁĄCZONE DLA TESTÓW
+// const preferencesResponse = await fetch(`${Astro.url.origin}/api/preferences`, {
+//   headers: {
+//     cookie: Astro.request.headers.get("cookie") || "",
+//   },
+// });
 // if (preferencesResponse.ok) {
 //   return Astro.redirect("/dashboard");
 // }

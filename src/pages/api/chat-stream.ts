@@ -86,8 +86,6 @@ export const POST = async (context: APIContext) => {
 
           controller.close();
         } catch (error) {
-          console.error("Chat stream error:", error);
-
           // Wyślij błąd jako ostatni event
           const encoder = new TextEncoder();
           const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -105,9 +103,7 @@ export const POST = async (context: APIContext) => {
         Connection: "keep-alive",
       },
     });
-  } catch (error) {
-    console.error("Chat stream API error:", error);
-
+  } catch {
     return new Response(
       JSON.stringify({
         error: "Internal server error",

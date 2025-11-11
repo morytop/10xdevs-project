@@ -63,12 +63,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // getSession() can be spoofed, getUser() verifies JWT with Supabase
     const {
       data: { user },
-      error,
     } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Auth verification failed:", error.message);
-    }
 
     // Set user in context.locals if authenticated
     if (user) {
@@ -97,10 +92,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (pathname === "/" && user) {
       return redirect("/dashboard");
     }
-  } catch (error) {
+  } catch {
     // Graceful error handling - don't block the entire app
-    console.error("Middleware error:", error);
-
     // For protected routes, redirect to login on error
     if (PROTECTED_PATHS.includes(pathname)) {
       const redirectTo = encodeURIComponent(pathname);
