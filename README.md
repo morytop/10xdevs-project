@@ -1,4 +1,4 @@
-# AI Meal Planner
+# AI Meal Planner PL
 
 ## Project Description
 
