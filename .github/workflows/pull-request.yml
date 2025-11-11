@@ -80,6 +80,40 @@ jobs:
             - name: Install Playwright browsers
               run: npm run playwright:install
 
+            - name: Verify environment variables
+              run: |
+                  echo "Checking environment variables..."
+                  if [ -z "$SUPABASE_URL" ]; then
+                    echo "❌ SUPABASE_URL is not set"
+                    exit 1
+                  else
+                    echo "✅ SUPABASE_URL is set"
+                  fi
+                  if [ -z "$SUPABASE_KEY" ]; then
+                    echo "❌ SUPABASE_KEY is not set"
+                    exit 1
+                  else
+                    echo "✅ SUPABASE_KEY is set"
+                  fi
+                  if [ -z "$E2E_USERNAME_ID" ]; then
+                    echo "❌ E2E_USERNAME_ID is not set"
+                    exit 1
+                  else
+                    echo "✅ E2E_USERNAME_ID is set"
+                  fi
+                  if [ -z "$E2E_USERNAME" ]; then
+                    echo "❌ E2E_USERNAME is not set"
+                    exit 1
+                  else
+                    echo "✅ E2E_USERNAME is set"
+                  fi
+                  if [ -z "$E2E_USERNAME_PASSWORD" ]; then
+                    echo "❌ E2E_USERNAME_PASSWORD is not set"
+                    exit 1
+                  else
+                    echo "✅ E2E_USERNAME_PASSWORD is set"
+                  fi
+
             - name: Run E2E tests
               run: npm run test:e2e
 
