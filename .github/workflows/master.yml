@@ -1,0 +1,77 @@
+# CI/CD Pipeline for AI Meal Planner
+#
+# This workflow consists of two jobs: test and build.
+# - test: Runs all tests using npm run test
+# - build: Builds the application for production (runs after test job succeeds)
+#
+# Uses Node.js version specified in .nvmrc (22.14.0) and latest GitHub Actions.
+#
+# Required GitHub Secrets (for production builds):
+# - SUPABASE_URL: Your Supabase project URL
+# - SUPABASE_KEY: Your Supabase anon/public key
+# - OPENROUTER_API_KEY: Your OpenRouter API key for AI features
+#
+# The workflow runs on:
+# - Push to master branch
+# - Pull requests to master branch
+# - Manual trigger (workflow_dispatch)
+
+name: Test & Build Master
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for production
+        run: npm run build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v5
+        if: success()
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 7
